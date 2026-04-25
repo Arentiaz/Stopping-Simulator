@@ -29,19 +29,23 @@ def simWindow(paramList):
     egoImage.place(x = 1350 - 74 - paramList[3], y = 200)
     followerImage.place(x = 1350 - 148 - paramList[3] -paramList[6], y = 200)
 
-    run = Button(newWindow, text="Run",  command= lambda: updatePostitions(egoImage, followerImage, wall, lead, ego, follower))
+    run = Button(newWindow, text="Run",  command= lambda: updatePostitions(newWindow, egoImage, followerImage, wall, lead, ego, follower))
     run.place(x = 1350/2, y = 50)
     newWindow.mainloop()
 
 def calculatePositions(lead, ego, follower):
     return(lead.getGap(), ego.getGap(), follower.getGap())
 
-def updatePostitions(egoImage, followerImage, wall, lead, ego, follower):
+def updatePostitions(newWindow, egoImage, followerImage, wall, lead, ego, follower):
+    print(lead.getGap(), ego.getGap(), follower.getGap(), lead.getState(), ego.getState(), follower.getState())
     lead.update(wall, ego)
     ego.update(lead, follower)
     follower.update(ego, wall)
     egoImage.place(x = 1350 - 74 - ego.getGap(), y = 200)
     followerImage.place(x = 1350 - 2 * 74 - ego.getGap() - follower.getGap(), y = 200)
+    if follower.getGap() >= 0 and follower.getGap() <= 600:
+        newWindow.after(100, updatePostitions, newWindow, egoImage, followerImage, wall, lead, ego, follower)
+        
 
 master = Tk()
 master.eval('tk::PlaceWindow . center')

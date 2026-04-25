@@ -24,7 +24,7 @@ class Vehicle:
         # Update position and velocity
         if self.v >= 1:
             self.v += (self.a*DT)*self.currentRoadIndex
-            self.vehicleGap += (self.v*DT + self.a*DT*DT*self.currentRoadIndex/2) - (lead.v*DT + lead.a*DT*DT*self.currentRoadIndex/2)
+            self.vehicleGap -= (self.v*DT + self.a*DT*DT*self.currentRoadIndex/2) + (lead.v*DT + lead.a*DT*DT*self.currentRoadIndex/2)
             #determining how far this vehicle wants to 
             self.desiredDistance = max(self.v*self.desiredTimeGap, 3)
         else:
@@ -34,6 +34,9 @@ class Vehicle:
     
     def getGap(self):
         return self.vehicleGap
+    
+    def getState(self):
+        return self.stopped
 
 class Ego(Vehicle):
     def updateAcceleration(self, lead, rear):
