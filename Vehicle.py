@@ -4,26 +4,21 @@ import numpy as np
 
 DT = 0.1
 class Vehicle:
-    def __init__(self, config={}):
-        # Set default configuration
-        self.setDefaultConfig()
-        
-    def setDefaultConfig(self):    
-        self.currentRoadIndex = 0
-
+    def __init__(self, parameters):
+        self.currentRoadIndex = parameters[4]
         #varies from 0.7-1.0g
-        self.maxAcceleration = 9.8
-        self.desiredTimeGap = 3
-        self.reactionSpeed = 0
-        self.desiredDistance = 0
-        self.vehicleGap = 0
-        self.v = 0
+        self.maxAcceleration = 9.8*(1-parameters[2]/4)
+        self.desiredTimeGap = parameters[5]
+        self.reactionSpeed = parameters[3]
+        self.vehicleGap = parameters[1]
+        self.v = parameters[0]
         self.a = 0
+        self.desiredDistance = self.v*self.desiredTimeGap
         self.stopped = False
 
     # Update acceleration
     def updateAcceleration(self, lead, rear):
-        self.a = self.maxAcceleration*(1-(self.v/lead.v)^2 - (self.desiredDistance/(self.vehicleGap))^2)
+        self.a = self.maxAcceleration*(1-pow((self.v/60),4) - pow((self.desiredDistance/(self.vehicleGap)),2))
 
     def update(self, lead, rear):
         # Update position and velocity
@@ -31,14 +26,18 @@ class Vehicle:
             self.v += (self.a*DT)*self.currentRoadIndex
             self.vehicleGap += (self.v*DT + self.a*DT*DT*self.currentRoadIndex/2) - (lead.v*DT + lead.a*DT*DT*self.currentRoadIndex/2)
             #determining how far this vehicle wants to 
-            self.desiredDistance = lead.v*self.desiredTimeGap 
+            self.desiredDistance = max(self.v*self.desiredTimeGap, 3)
         else:
             self.v = 0
             self.stopped = True
+        self.updateAcceleration(lead, rear)
+    
+    def getGap(self):
+        return self.vehicleGap
 
 class Ego(Vehicle):
     def updateAcceleration(self, lead, rear):
-        self.a = self.maxAcceleration*(1-(self.v/lead.v)^2 - ((self.desiredDistance/(self.vehicleGap))^2 - (self.desiredDistance/(rear.x))^2))
+        self.a = self.maxAcceleration*(1-pow((self.v/60),4) - pow(self.desiredDistance/(self.vehicleGap),2) - pow((self.desiredDistance/(rear.vehicleGap)),2))
 
 
         
