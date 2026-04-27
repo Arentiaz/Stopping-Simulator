@@ -3,6 +3,9 @@ from tkinter import *
 import Vehicle
 import os
 from PIL import ImageTk, Image
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 #append to a list, all vehicle parameters per tick as a list, use numpy.
 #use a while loop.
 #whats the best way to add parameters?
@@ -20,8 +23,8 @@ def simWindow(paramList):
     followerImage = Label(newWindow, image = img)
 
     #speed, distance, brake, reaction speed, road index, desired time gap
-    wall = Vehicle.Vehicle([0,0,0,0,0,0])
-    lead = Vehicle.Vehicle([paramList[0], 300, paramList[1], paramList[8], paramList[9], 3])
+    wall = Vehicle.Vehicle([0,0,0,paramList[8],0,0])
+    lead = Vehicle.Vehicle([paramList[0], paramList[0]*3, paramList[1], paramList[8], paramList[9], 3])
     ego = Vehicle.Ego([paramList[2], paramList[3], paramList[4], paramList[8], paramList[9], paramList[10]])
     follower = Vehicle.Vehicle([paramList[5], paramList[6], paramList[7], paramList[8], paramList[9], paramList[11]])
     
@@ -29,59 +32,91 @@ def simWindow(paramList):
     egoImage.place(x = 1350 - 74 - paramList[3], y = 200)
     followerImage.place(x = 1350 - 148 - paramList[3] -paramList[6], y = 200)
 
-    run = Button(newWindow, text="Run",  command= lambda: updatePostitions(newWindow, egoImage, followerImage, wall, lead, ego, follower))
+    run = Button(newWindow, text="Run",  command= lambda: updatePostitions(newWindow, egoImage, followerImage, wall, lead, ego, follower, {"leadDisplacement":[], "egoDisplacement":[], "followerDisplacement":[], "leadSpeed":[], "egoSpeed":[], "followerSpeed":[]}))
     run.place(x = 1350/2, y = 50)
     newWindow.mainloop()
 
 def calculatePositions(lead, ego, follower):
     return(lead.getGap(), ego.getGap(), follower.getGap())
 
-def updatePostitions(newWindow, egoImage, followerImage, wall, lead, ego, follower):
-    print(lead.getGap(), ego.getGap(), follower.getGap(), lead.getState(), ego.getState(), follower.getState())
+def graphData(displacementData):
+    leadGraph = pd.DataFrame(displacementData["leadDisplacement"], columns=["Lead"], index=range(len(displacementData["leadDisplacement"])))
+    egoGraph = pd.DataFrame(displacementData["egoDisplacement"], columns=["Ego"], index=range(len(displacementData["egoDisplacement"])))
+    followerGraph = pd.DataFrame(displacementData["followerDisplacement"], columns=["Follower"], index=range(len(displacementData["followerDisplacement"])))
+    leadSpeed = pd.DataFrame(displacementData["leadSpeed"], columns=["Lead Speed"], index=range(len(displacementData["leadSpeed"])))
+    egoSpeed = pd.DataFrame(displacementData["egoSpeed"], columns=["Ego Speed"], index=range(len(displacementData["egoSpeed"])))
+    followerSpeed = pd.DataFrame(displacementData["followerSpeed"], columns=["Follower Speed"], index=range(len(displacementData["followerSpeed"])))
+    #2 graphs, one for displacement, one for speed, x axis is time, y axis is displacement/speed, 3 lines per graph, one for each vehicle.
+    
+    fig, ax = plt.subplots(3, 2)
+    ax[0,0].plot(leadSpeed, label="Lead Speed"); ax[0,0].set_xlabel("Time (s)"); ax[0,0].set_ylabel("Lead Speed (m/s)"); ax[0,0].legend()
+    ax[1,0].plot(egoSpeed, label="Ego Speed"); ax[1,0].set_xlabel("Time (s)"); ax[1,0].set_ylabel("Ego Speed (m/s)"); ax[1,0].legend()
+    ax[2,0].plot(followerSpeed, label="Follower Speed"); ax[2,0].set_xlabel("Time (s)"); ax[2,0].set_ylabel("Follower Speed (m/s)"); ax[2,0].legend()
+    ax[0,1].plot(leadGraph, label="Lead Displacement"); ax[0,1].set_xlabel("Time (s)"); ax[0,1].set_ylabel("Lead Displacement (m)"); ax[0,1].legend()
+    ax[1,1].plot(egoGraph, label="Ego Displacement"); ax[1,1].set_xlabel("Time (s)"); ax[1,1].set_ylabel("Ego Displacement (m)"); ax[1,1].legend()
+    ax[2,1].plot(followerGraph, label="Follower Displacement"); ax[2,1].set_xlabel("Time (s)"); ax[2,1].set_ylabel("Follower Displacement (m)"); ax[2,1].legend()
+    plt.show()
+
+
+
+
+def updatePostitions(newWindow, egoImage, followerImage, wall, lead, ego, follower, displacementData):
+    displacementData["leadDisplacement"].append(lead.getGap())
+    displacementData["egoDisplacement"].append(ego.getGap())    
+    displacementData["followerDisplacement"].append(follower.getGap())
+    displacementData["leadSpeed"].append(lead.getSpeed())
+    displacementData["egoSpeed"].append(ego.getSpeed())
+    displacementData["followerSpeed"].append(follower.getSpeed())
     lead.update(wall, ego)
     ego.update(lead, follower)
     follower.update(ego, wall)
     egoImage.place(x = 1350 - 74 - ego.getGap(), y = 200)
     followerImage.place(x = 1350 - 2 * 74 - ego.getGap() - follower.getGap(), y = 200)
-    if follower.getGap() >= 0 and follower.getGap() <= 600:
-        newWindow.after(100, updatePostitions, newWindow, egoImage, followerImage, wall, lead, ego, follower)
-        
+    if lead.getGap() < 0 or ego.getGap() < 0 or follower.getGap() < 0:
+        print("Vehicle Collision:")
+        print(lead.getGap(), ego.getGap(), follower.getGap())
+        graphData(displacementData)
+    elif lead.getState() == False or ego.getState() == False or follower.getState() == False:
+        newWindow.after(25, updatePostitions, newWindow, egoImage, followerImage, wall, lead, ego, follower, displacementData)
+    else:
+        graphData(displacementData)
+
 
 master = Tk()
 master.eval('tk::PlaceWindow . center')
 master.geometry("1000x400")
 master.title("Collision Simulator")
 Label(master, text="Modify Vehicle Parameters").grid(row=0, column=2, pady=5, padx = 5)
-Label(master, text="Speed (km/hr)").grid(row=1, column=2, pady=1, padx = 5)
+Label(master, text="Speed (m/s)").grid(row=1, column=2, pady=1, padx = 5)
 Label(master, text="Distance (m)").grid(row=1, column=3, pady=1, padx = 5)
 Label(master, text="Brake Wear (%)").grid(row=1, column=4, pady=1, padx = 5)
 Label(master, text="Driver Desired Time Gap (s)").grid(row=1, column=5, pady=1, padx = 5)
 
-lSpeed = Scale(master, from_=0, to=150, orient=HORIZONTAL, length=150)
-lSpeed.set(60)
+lSpeed = Scale(master, from_=0, to=70, orient=HORIZONTAL, length=150)
+lSpeed.set(20)
 lBrakeWear = Scale(master, from_=0, to=100, orient=HORIZONTAL, length=100)
 lBrakeWear.set(0)
 
-eSpeed = Scale(master, from_=0, to=150, orient=HORIZONTAL, length=150)
-eSpeed.set(60)
-eDistance = Scale(master, from_=0, to=500, orient=HORIZONTAL, length=250)
-eDistance.set(150)
+eSpeed = Scale(master, from_=0, to=70, orient=HORIZONTAL, length=150)
+eSpeed.set(20)
+eDistance = Scale(master, from_=0, to=100, orient=HORIZONTAL, length=250)
+eDistance.set(30)
 eBrakeWear = Scale(master, from_=0, to=100, orient=HORIZONTAL, length=100)
 eBrakeWear.set(0)
 eTimeGap = Scale(master, from_=0, to=4, resolution=0.1, orient=HORIZONTAL, length=200)
 eTimeGap.set(3)
 
-fSpeed = Scale(master, from_=0, to=150, orient=HORIZONTAL, length=150)
-fSpeed.set(60)
-fDistance = Scale(master, from_=0, to=500, orient=HORIZONTAL, length=250)
-fDistance.set(150)
+fSpeed = Scale(master, from_=0, to=70, orient=HORIZONTAL, length=150)
+fSpeed.set(20)
+fDistance = Scale(master, from_=0, to=100, orient=HORIZONTAL, length=250)
+fDistance.set(30)
 fBrakeWear = Scale(master, from_=0, to=100, orient=HORIZONTAL, length=100)
 fBrakeWear.set(0)
 fTimeGap = Scale(master, from_=0, to=4, resolution=0.1, orient=HORIZONTAL, length=200)
 fTimeGap.set(3)
 
-fReaction = Scale(master, from_=0.1, to=2, resolution=0.02, orient=HORIZONTAL, length=150)
-fReaction.set(2.5)
+fReaction = Scale(master, from_=0.1, to=1, resolution=0.1, orient=HORIZONTAL, length=150)
+fReaction.set(.2)
 roadIndex = Scale(master, from_=0.5, to=1, resolution=0.05, orient=HORIZONTAL, length=150)
 roadIndex.set(0.9)
 
