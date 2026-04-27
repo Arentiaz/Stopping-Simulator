@@ -26,7 +26,7 @@ def simWindow(paramList):
 
     #speed, distance, brake, reaction speed, road index, desired time gap
     wall = Vehicle.Vehicle([0,0,0,paramList[8],0,0, False])
-    lead = Vehicle.Vehicle([paramList[0], paramList[0]*3, paramList[1], paramList[8], paramList[9], 3, False])
+    lead = Vehicle.Vehicle([paramList[0], paramList[0]*3.8, paramList[1], paramList[8], paramList[9], 3, False])
     ego = Vehicle.Vehicle([paramList[2], paramList[3], paramList[4], paramList[8], paramList[9], paramList[10], paramList[12]])
     follower = Vehicle.Vehicle([paramList[5], paramList[6], paramList[7], paramList[8], paramList[9], paramList[11], False])
     
@@ -34,7 +34,8 @@ def simWindow(paramList):
     egoImage.place(x = 1350 - 74 - paramList[3], y = 200)
     followerImage.place(x = 1350 - 148 - paramList[3] -paramList[6], y = 200)
 
-    run = Button(newWindow, text="Run",  command= lambda: updatePostitions(newWindow, egoImage, followerImage, wall, lead, ego, follower, {"leadDisplacement":[], "egoDisplacement":[], "followerDisplacement":[], "leadSpeed":[], "egoSpeed":[], "followerSpeed":[]}))
+    run = Button(newWindow, text="Run",  command= lambda: updatePostitions(newWindow, egoImage, followerImage, wall, lead, ego, follower, {"leadDisplacement":[],
+         "egoDisplacement":[], "followerDisplacement":[], "leadSpeed":[], "egoSpeed":[], "followerSpeed":[], "leadAcceleration":[], "egoAcceleration":[], "followerAcceleration":[]}))
     run.place(x = 1350/2, y = 50)
     newWindow.mainloop()
 
@@ -48,19 +49,22 @@ def graphData(displacementData):
     leadSpeed = pd.DataFrame(displacementData["leadSpeed"], columns=["Lead Speed"], index=range(len(displacementData["leadSpeed"])))
     egoSpeed = pd.DataFrame(displacementData["egoSpeed"], columns=["Ego Speed"], index=range(len(displacementData["egoSpeed"])))
     followerSpeed = pd.DataFrame(displacementData["followerSpeed"], columns=["Follower Speed"], index=range(len(displacementData["followerSpeed"])))
+    leadAcceleration = pd.DataFrame(displacementData["leadAcceleration"], columns=["Lead Acceleration"], index=range(len(displacementData["leadAcceleration"])))
+    egoAcceleration = pd.DataFrame(displacementData["egoAcceleration"], columns=["Ego Acceleration"], index=range(len(displacementData["egoAcceleration"])))
+    followerAcceleration = pd.DataFrame(displacementData["followerAcceleration"], columns=["Follower Acceleration"], index=range(len(displacementData["followerAcceleration"])))
     #2 graphs, one for displacement, one for speed, x axis is time, y axis is displacement/speed, 3 lines per graph, one for each vehicle.
     
-    fig, ax = plt.subplots(3, 2)
+    fig, ax = plt.subplots(3, 3)
     ax[0,0].plot(leadSpeed, label="Lead Speed"); ax[0,0].set_xlabel("Time (s)"); ax[0,0].set_ylabel("Lead Speed (m/s)"); ax[0,0].legend()
     ax[1,0].plot(egoSpeed, label="Ego Speed"); ax[1,0].set_xlabel("Time (s)"); ax[1,0].set_ylabel("Ego Speed (m/s)"); ax[1,0].legend()
     ax[2,0].plot(followerSpeed, label="Follower Speed"); ax[2,0].set_xlabel("Time (s)"); ax[2,0].set_ylabel("Follower Speed (m/s)"); ax[2,0].legend()
     ax[0,1].plot(leadGraph, label="Lead Displacement"); ax[0,1].set_xlabel("Time (s)"); ax[0,1].set_ylabel("Lead Displacement (m)"); ax[0,1].legend()
     ax[1,1].plot(egoGraph, label="Ego Displacement"); ax[1,1].set_xlabel("Time (s)"); ax[1,1].set_ylabel("Ego Displacement (m)"); ax[1,1].legend()
     ax[2,1].plot(followerGraph, label="Follower Displacement"); ax[2,1].set_xlabel("Time (s)"); ax[2,1].set_ylabel("Follower Displacement (m)"); ax[2,1].legend()
+    ax[0,2].plot(leadAcceleration, label="Lead Acceleration"); ax[0,2].set_xlabel("Time (s)"); ax[0,2].set_ylabel("Lead Acceleration (m/s^2)"); ax[0,2].legend()
+    ax[1,2].plot(egoAcceleration, label="Ego Acceleration"); ax[1,2].set_xlabel("Time (s)"); ax[1,2].set_ylabel("Ego Acceleration (m/s^2)"); ax[1,2].legend()
+    ax[2,2].plot(followerAcceleration, label="Follower Acceleration"); ax[2,2].set_xlabel("Time (s)"); ax[2,2].set_ylabel("Follower Acceleration (m/s^2)"); ax[2,2].legend()
     plt.show()
-
-
-
 
 def updatePostitions(newWindow, egoImage, followerImage, wall, lead, ego, follower, displacementData):
     displacementData["leadDisplacement"].append(lead.getGap())
@@ -69,6 +73,9 @@ def updatePostitions(newWindow, egoImage, followerImage, wall, lead, ego, follow
     displacementData["leadSpeed"].append(lead.getSpeed())
     displacementData["egoSpeed"].append(ego.getSpeed())
     displacementData["followerSpeed"].append(follower.getSpeed())
+    displacementData["leadAcceleration"].append(lead.getAcceleration())
+    displacementData["egoAcceleration"].append(ego.getAcceleration())
+    displacementData["followerAcceleration"].append(follower.getAcceleration()) 
     lead.update(wall, ego)
     ego.update(lead, follower)
     follower.update(ego, wall)
@@ -79,7 +86,7 @@ def updatePostitions(newWindow, egoImage, followerImage, wall, lead, ego, follow
         print(lead.getGap(), ego.getGap(), follower.getGap())
         graphData(displacementData)
     elif lead.getState() == False or ego.getState() == False or follower.getState() == False:
-        newWindow.after(25, updatePostitions, newWindow, egoImage, followerImage, wall, lead, ego, follower, displacementData)
+        newWindow.after(5, updatePostitions, newWindow, egoImage, followerImage, wall, lead, ego, follower, displacementData)
     else:
         graphData(displacementData)
 

@@ -2,7 +2,7 @@ import uuid
 import numpy as np
 #DT defined as a tenth of a second.
 
-DT = 0.1
+DT = 0.02
 class Vehicle:
     def __init__(self, parameters):
         self.currentRoadIndex = parameters[4]
@@ -22,7 +22,7 @@ class Vehicle:
     def updateAcceleration(self, lead, rear):
         if self.epoch > self.reactionSpeed*5:
             if self.backLooking == True:
-                desiredBraking = self.maxAcceleration*(1-pow((self.v[-1]/(lead.v[-self.reactionSpeed]+3)),4) - pow(self.desiredDistance/(self.vehicleGap[-self.reactionSpeed])- (self.desiredDistance)/(rear.vehicleGap[-self.reactionSpeed]),2))
+                desiredBraking = self.maxAcceleration*(1-pow((self.v[-1]/(lead.v[-self.reactionSpeed]+3)),4) - pow(self.desiredDistance/(self.vehicleGap[-self.reactionSpeed]),2)+ pow((self.desiredDistance)/(rear.vehicleGap[-self.reactionSpeed]),1))
             else:
                 desiredBraking = self.maxAcceleration*(1-pow((self.v[-1]/(lead.v[-self.reactionSpeed]+3)),4) - pow((self.desiredDistance/(self.vehicleGap[-self.reactionSpeed])),2))
             if desiredBraking > 0:
@@ -51,6 +51,9 @@ class Vehicle:
     
     def getSpeed(self):
         return self.v[-1]
+    
+    def getAcceleration(self):
+        return self.a
 
 class Ego(Vehicle):
     def updateAcceleration(self, lead, rear):
