@@ -13,6 +13,8 @@ import matplotlib.pyplot as plt
 #
 
 #0 lSpeed.get(), 1 lBrakeWear.get(), 2 eSpeed.get(), 3 eDistance.get(), 4 eBrakeWear.get(), 5 fSpeed.get(), 6 fDistance.get(), 7 fBrakeWear.get(), 8 fReaction.get(), 9 roadIndex.get(), 10 eTimeGap.get(), 11 fTimeGap.get()
+
+
 def simWindow(paramList):
     newWindow = Toplevel(master)
     newWindow.geometry("1500x500")
@@ -23,10 +25,10 @@ def simWindow(paramList):
     followerImage = Label(newWindow, image = img)
 
     #speed, distance, brake, reaction speed, road index, desired time gap
-    wall = Vehicle.Vehicle([0,0,0,paramList[8],0,0])
-    lead = Vehicle.Vehicle([paramList[0], paramList[0]*3, paramList[1], paramList[8], paramList[9], 3])
-    ego = Vehicle.Ego([paramList[2], paramList[3], paramList[4], paramList[8], paramList[9], paramList[10]])
-    follower = Vehicle.Vehicle([paramList[5], paramList[6], paramList[7], paramList[8], paramList[9], paramList[11]])
+    wall = Vehicle.Vehicle([0,0,0,paramList[8],0,0, False])
+    lead = Vehicle.Vehicle([paramList[0], paramList[0]*3, paramList[1], paramList[8], paramList[9], 3, False])
+    ego = Vehicle.Vehicle([paramList[2], paramList[3], paramList[4], paramList[8], paramList[9], paramList[10], paramList[12]])
+    follower = Vehicle.Vehicle([paramList[5], paramList[6], paramList[7], paramList[8], paramList[9], paramList[11], False])
     
     leadImage.place(x = 1350, y = 200)
     egoImage.place(x = 1350 - 74 - paramList[3], y = 200)
@@ -147,7 +149,9 @@ fReaction.grid(row=5, column=2, pady=4, padx = 5)
 Label(master, text="Road Index").grid(row=6, column=1, pady=4, padx = 5)
 roadIndex.grid(row=6, column=2, pady=4, padx = 5)
 
-Button(master, text="Render",  command= lambda : simWindow([lSpeed.get(), lBrakeWear.get(), eSpeed.get(), eDistance.get(), fBrakeWear.get()
-    , fSpeed.get(), fDistance.get(), fBrakeWear.get(), fReaction.get(), roadIndex.get(), eTimeGap.get(), fTimeGap.get()])).grid(row=7, column=3, pady=4, padx = 5)
+Button(master, text="Render Ego as IDM",  command= lambda : simWindow([lSpeed.get(), lBrakeWear.get(), eSpeed.get(), eDistance.get(), fBrakeWear.get()
+    , fSpeed.get(), fDistance.get(), fBrakeWear.get(), fReaction.get(), roadIndex.get(), eTimeGap.get(), fTimeGap.get(), False])).grid(row=7, column=2, pady=4, padx = 5)
 
+Button(master, text="Render Ego as Back Looking IDM",  command= lambda : simWindow([lSpeed.get(), lBrakeWear.get(), eSpeed.get(), eDistance.get(), fBrakeWear.get()
+    , fSpeed.get(), fDistance.get(), fBrakeWear.get(), fReaction.get(), roadIndex.get(), eTimeGap.get(), fTimeGap.get(), True])).grid(row=7, column=3, pady=4, padx = 5)
 master.mainloop()
