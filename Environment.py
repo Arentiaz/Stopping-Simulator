@@ -30,11 +30,11 @@ def simWindow(paramList):
     ego = Vehicle.Vehicle([paramList[2], paramList[3], paramList[4], paramList[8], paramList[9], paramList[10], paramList[12]])
     follower = Vehicle.Vehicle([paramList[5], paramList[6], paramList[7], paramList[8], paramList[9], paramList[11], False])
     
-    leadImage.place(x = 1350, y = 200)
-    egoImage.place(x = 1350 - 74 - paramList[3], y = 200)
-    followerImage.place(x = 1350 - 148 - paramList[3] -paramList[6], y = 200)
+    leadImage.place(x = 1350 - paramList[0]*3.8*6, y = 200)
+    egoImage.place(x = 1350 - 74 - paramList[0]*3.8*6 - paramList[3]*6, y = 200)
+    followerImage.place(x = 1350 - 2 * 74 - paramList[0]*3.8*6 - paramList[3]*6 -paramList[6]*6, y = 200)
 
-    run = Button(newWindow, text="Run",  command= lambda: updatePostitions(newWindow, egoImage, followerImage, wall, lead, ego, follower, {"leadDisplacement":[],
+    run = Button(newWindow, text="Run",  command= lambda: updatePostitions(newWindow, leadImage, egoImage, followerImage, wall, lead, ego, follower, {"leadDisplacement":[],
          "egoDisplacement":[], "followerDisplacement":[], "leadSpeed":[], "egoSpeed":[], "followerSpeed":[], "leadAcceleration":[], "egoAcceleration":[], "followerAcceleration":[]}))
     run.place(x = 1350/2, y = 50)
     newWindow.mainloop()
@@ -66,7 +66,7 @@ def graphData(displacementData):
     ax[2,2].plot(followerAcceleration, label="Follower Acceleration"); ax[2,2].set_xlabel("Time (s)"); ax[2,2].set_ylabel("Follower Acceleration (m/s^2)"); ax[2,2].legend()
     plt.show()
 
-def updatePostitions(newWindow, egoImage, followerImage, wall, lead, ego, follower, displacementData):
+def updatePostitions(newWindow, leadImage, egoImage, followerImage, wall, lead, ego, follower, displacementData):
     displacementData["leadDisplacement"].append(lead.getGap())
     displacementData["egoDisplacement"].append(ego.getGap())    
     displacementData["followerDisplacement"].append(follower.getGap())
@@ -79,14 +79,15 @@ def updatePostitions(newWindow, egoImage, followerImage, wall, lead, ego, follow
     lead.update(wall, ego)
     ego.update(lead, follower)
     follower.update(ego, wall)
-    egoImage.place(x = 1350 - 74 - ego.getGap(), y = 200)
-    followerImage.place(x = 1350 - 2 * 74 - ego.getGap() - follower.getGap(), y = 200)
+    leadImage.place(x = 1350 - lead.getGap()*6, y = 200)
+    egoImage.place(x = 1350 - 74 - lead.getGap()*6 -  ego.getGap()*6, y = 200)
+    followerImage.place(x = 1350 - 2 * 74 - lead.getGap()*6 - ego.getGap()*6 - follower.getGap()*6, y = 200)
     if lead.getGap() < 0 or ego.getGap() < 0 or follower.getGap() < 0:
         print("Vehicle Collision:")
         print(lead.getGap(), ego.getGap(), follower.getGap())
         graphData(displacementData)
     elif lead.getState() == False or ego.getState() == False or follower.getState() == False:
-        newWindow.after(5, updatePostitions, newWindow, egoImage, followerImage, wall, lead, ego, follower, displacementData)
+        newWindow.after(5, updatePostitions, newWindow, leadImage, egoImage, followerImage, wall, lead, ego, follower, displacementData)
     else:
         graphData(displacementData)
 

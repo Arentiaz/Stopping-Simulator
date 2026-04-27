@@ -22,9 +22,9 @@ class Vehicle:
     def updateAcceleration(self, lead, rear):
         if self.epoch > self.reactionSpeed*5:
             if self.backLooking == True:
-                desiredBraking = self.maxAcceleration*(1-pow((self.v[-1]/(lead.v[-self.reactionSpeed]+3)),4) - pow(self.desiredDistance/(self.vehicleGap[-self.reactionSpeed]),2)+ pow((self.desiredDistance)/(rear.vehicleGap[-self.reactionSpeed]),1))
+                desiredBraking = self.maxAcceleration*(1-pow((self.v[-1]/(lead.v[-self.reactionSpeed]+4)),4) - pow(self.desiredDistance/(self.vehicleGap[-self.reactionSpeed]),2)+ pow((self.desiredDistance)/(rear.vehicleGap[-self.reactionSpeed]),1))
             else:
-                desiredBraking = self.maxAcceleration*(1-pow((self.v[-1]/(lead.v[-self.reactionSpeed]+3)),4) - pow((self.desiredDistance/(self.vehicleGap[-self.reactionSpeed])),2))
+                desiredBraking = self.maxAcceleration*(1-pow((self.v[-1]/(lead.v[-self.reactionSpeed]+4)),4) - pow((self.desiredDistance/(self.vehicleGap[-self.reactionSpeed])),2))
             if desiredBraking > 0:
                 self.a = min(desiredBraking, 1 + self.maxAcceleration)
             elif desiredBraking <= 0:
