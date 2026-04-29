@@ -26,13 +26,13 @@ def simWindow(paramList):
 
     #speed, distance, brake, reaction speed, road index, desired time gap
     wall = Vehicle.Vehicle([0,0,0,paramList[8],0,0, False])
-    lead = Vehicle.Vehicle([paramList[0], paramList[0]*3.8, paramList[1], paramList[8], paramList[9], 3, False])
+    lead = Vehicle.Vehicle([paramList[0], paramList[0]*3, paramList[1], paramList[8], paramList[9], 3, False])
     ego = Vehicle.Vehicle([paramList[2], paramList[3], paramList[4], paramList[8], paramList[9], paramList[10], paramList[12]])
     follower = Vehicle.Vehicle([paramList[5], paramList[6], paramList[7], paramList[8], paramList[9], paramList[11], False])
     
-    leadImage.place(x = 1350 - paramList[0]*3.8*6, y = 200)
-    egoImage.place(x = 1350 - 74 - paramList[0]*3.8*6 - paramList[3]*6, y = 200)
-    followerImage.place(x = 1350 - 2 * 74 - paramList[0]*3.8*6 - paramList[3]*6 -paramList[6]*6, y = 200)
+    leadImage.place(x = 1350 - paramList[0]*3*6, y = 200)
+    egoImage.place(x = 1350 - 74 - paramList[0]*3*6 - paramList[3]*6, y = 200)
+    followerImage.place(x = 1350 - 2 * 74 - paramList[0]*3*6 - paramList[3]*6 -paramList[6]*6, y = 200)
 
     run = Button(newWindow, text="Run",  command= lambda: updatePostitions(newWindow, leadImage, egoImage, followerImage, wall, lead, ego, follower, {"leadDisplacement":[],
          "egoDisplacement":[], "followerDisplacement":[], "leadSpeed":[], "egoSpeed":[], "followerSpeed":[], "leadAcceleration":[], "egoAcceleration":[], "followerAcceleration":[]}))

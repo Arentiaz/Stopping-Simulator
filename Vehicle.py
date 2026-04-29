@@ -1,8 +1,8 @@
 import uuid
 import numpy as np
-#DT defined as a tenth of a second.
+#DT defined as 50ms.
 
-DT = 0.02
+DT = 0.05
 class Vehicle:
     def __init__(self, parameters):
         self.currentRoadIndex = parameters[4]
